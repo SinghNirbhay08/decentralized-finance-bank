@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decentralized Banking System</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.5.3/web3.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --success: #27ae60;
+            --error: #e74c3c;
+            --background: #f8f9fa;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 2.5rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 2.5rem;
+            font-size: 2.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: var(--background);
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        h3 {
+            color: var(--secondary);
+            margin-bottom: 1.5rem;
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        h3 i {
+            font-size: 1.2em;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 0.8rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        button {
+            width: 100%;
+            background: var(--secondary);
+            color: white;
+            padding: 1rem;
+            border: none;
+            border-radius: 0.8rem;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        button:hover {
+            background: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        #output {
+            padding: 1.5rem;
+            border-radius: 0.8rem;
+            margin-top: 2rem;
+            font-size: 1.1rem;
+        }
+
+        .success {
+            background: #e8f6ef;
+            color: var(--success);
+            border-left: 4px solid var(--success);
+        }
+
+        .error {
+            background: #fee;
+            color: var(--error);
+            border-left: 4px solid var(--error);
+        }
+
+        .balance-display {
+            background: var(--background);
+            padding: 1.5rem;
+            border-radius: 0.8rem;
+            font-size: 1.5rem;
+            text-align: center;
+            font-weight: bold;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1.5rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-university"></i>Decentralized Bank</h1>
+        
+        <div class="dashboard">
+            <!-- Create Account Card -->
+            <div class="card">
+                <h3><i class="fas fa-user-plus"></i>Create Account</h3>
+                <form id="createAccountForm">
+                    <div class="form-group">
+                        <label>Account Name</label>
+                        <input type="text" id="createName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Account Number</label>
+                        <input type="number" id="createAccountNumber" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Initial Deposit (ETH)</label>
+                        <input type="number" id="createInitialDeposit" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Security PIN</label>
+                        <input type="password" id="createPin" required>
+                    </div>
+                    <button type="submit"><i class="fas fa-file-contract"></i>Create Account</button>
+                </form>
+            </div>
+
+            <!-- Transaction Cards -->
+            <div class="card">
+                <h3><i class="fas fa-wallet"></i>Deposit Funds</h3>
+                <form id="depositForm">
+                    <div class="form-group">
+                        <label>Account Number</label>
+                        <input type="number" id="depositAccountNumber" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Amount (ETH)</label>
+                        <input type="number" id="depositAmount" required>
+                    </div>
+                    <button type="submit"><i class="fas fa-coins"></i>Deposit</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h3><i class="fas fa-hand-holding-usd"></i>Withdraw Funds</h3>
+                <form id="withdrawForm">
+                    <div class="form-group">
+                        <label>Account Number</label>
+                        <input type="number" id="withdrawAccountNumber" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Amount (ETH)</label>
+                        <input type="number" id="withdrawAmount" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Security PIN</label>
+                        <input type="password" id="withdrawPin" required>
+                    </div>
+                    <button type="submit"><i class="fas fa-money-check-alt"></i>Withdraw</button>
+                </form>
+            </div>
+
+            <!-- Balance Check Card -->
+            <div class="card">
+                <h3><i class="fas fa-balance-scale"></i>Check Balance</h3>
+                <form id="checkBalanceForm">
+                    <div class="form-group">
+                        <label>Account Number</label>
+                        <input type="number" id="checkBalanceAccountNumber" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Security PIN</label>
+                        <input type="password" id="checkBalancePin" required>
+                    </div>
+                    <button type="submit"><i class="fas fa-search-dollar"></i>Check Balance</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Output Section -->
+        <div id="output"></div>
+    </div>
+
+    <script>
+        // Web3 and Contract Setup
+        let web3;
+        let contract;
+        const contractABI = [
+            {
+                "anonymous": false,
+                "inputs": [
+                    {"indexed": true, "internalType": "uint256", "name": "accountNumber", "type": "uint256"},
+                    {"indexed": false, "internalType": "string", "name": "name", "type": "string"}
+                ],
+                "name": "AccountCreated",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {"indexed": true, "internalType": "uint256", "name": "accountNumber", "type": "uint256"},
+                    {"indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256"}
+                ],
+                "name": "Deposited",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {"indexed": true, "internalType": "uint256", "name": "accountNumber", "type": "uint256"},
+                    {"indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256"}
+                ],
+                "name": "Withdrawn",
+                "type": "event"
+            },
+            {
+                "inputs": [
+                    {"internalType": "uint256", "name": "", "type": "uint256"}
+                ],
+                "name": "accounts",
+                "outputs": [
+                    {"internalType": "string", "name": "name", "type": "string"},
+                    {"internalType": "uint256", "name": "accountNumber", "type": "uint256"},
+                    {"internalType": "uint256", "name": "balance", "type": "uint256"},
+                    {"internalType": "uint256", "name": "pin", "type": "uint256"},
+                    {"internalType": "bool", "name": "exists", "type": "bool"}
+                ],
+                "stateMutability": "view",
+                "type": "function",
+                "constant": true
+            },
+            {
+                "inputs": [
+                    {"internalType": "string", "name": "_name", "type": "string"},
+                    {"internalType": "uint256", "name": "_accountNumber", "type": "uint256"},
+                    {"internalType": "uint256", "name": "_initialDeposit", "type": "uint256"},
+                    {"internalType": "uint256", "name": "_pin", "type": "uint256"}
+                ],
+                "name": "createAccount",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {"internalType": "uint256", "name": "_accountNumber", "type": "uint256"},
+                    {"internalType": "uint256", "name": "_amount", "type": "uint256"}
+                ],
+                "name": "deposit",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {"internalType": "uint256", "name": "_accountNumber", "type": "uint256"},
+                    {"internalType": "uint256", "name": "_amount", "type": "uint256"},
+                    {"internalType": "uint256", "name": "_pin", "type": "uint256"}
+                ],
+                "name": "withdraw",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {"internalType": "uint256", "name": "_accountNumber", "type": "uint256"},
+                    {"internalType": "uint256", "name": "_pin", "type": "uint256"}
+                ],
+                "name": "checkBalance",
+                "outputs": [
+                    {"internalType": "uint256", "name": "", "type": "uint256"}
+                ],
+                "stateMutability": "view",
+                "type": "function",
+                "constant": true
+            }
+        ];
+
+        const contractAddress = "0xB86B7A677F070cedeB8e1352De0072Ba5c18F086";
+        const outputDiv = document.getElementById("output");
+
+        // Initialize Web3
+        async function init() {
+            if (typeof window.ethereum !== 'undefined') {
+                web3 = new Web3(window.ethereum);
+                try {
+                    await window.ethereum.enable();
+                    contract = new web3.eth.Contract(contractABI, contractAddress);
+                } catch (error) {
+                    showError('Please connect to MetaMask');
+                }
+            } else {
+                showError('Please install MetaMask');
+            }
+        }
+
+        // UI Helpers
+        function showError(message) {
+            outputDiv.className = 'error';
+            outputDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+        }
+
+        function showSuccess(message) {
+            outputDiv.className = 'success';
+            outputDiv.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+        }
+
+        function showBalance(balance) {
+            outputDiv.className = 'balance-display';
+            outputDiv.innerHTML = `
+                <i class="fas fa-wallet"></i>
+                ${balance} ETH
+            `;
+        }
+
+        // Form Handlers
+        document.getElementById('createAccountForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const inputs = {
+                name: document.getElementById('createName').value,
+                accountNumber: document.getElementById('createAccountNumber').value,
+                initialDeposit: document.getElementById('createInitialDeposit').value,
+                pin: document.getElementById('createPin').value
+            };
+
+            try {
+                const accounts = await web3.eth.getAccounts();
+                await contract.methods.createAccount(
+                    inputs.name,
+                    inputs.accountNumber,
+                    inputs.initialDeposit,
+                    inputs.pin
+                ).send({ from: accounts[0] });
+                showSuccess(`Account ${inputs.accountNumber} created successfully!`);
+            } catch (error) {
+                showError(error.message);
+            }
+        };
+
+        document.getElementById('depositForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const inputs = {
+                accountNumber: document.getElementById('depositAccountNumber').value,
+                amount: document.getElementById('depositAmount').value
+            };
+
+            try {
+                const accounts = await web3.eth.getAccounts();
+                await contract.methods.deposit(
+                    inputs.accountNumber,
+                    inputs.amount
+                ).send({ from: accounts[0] });
+                showSuccess(`Deposited ${inputs.amount} ETH successfully!`);
+            } catch (error) {
+                showError(error.message);
+            }
+        };
+
+        document.getElementById('withdrawForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const inputs = {
+                accountNumber: document.getElementById('withdrawAccountNumber').value,
+                amount: document.getElementById('withdrawAmount').value,
+                pin: document.getElementById('withdrawPin').value
+            };
+
+            try {
+                const accounts = await web3.eth.getAccounts();
+                await contract.methods.withdraw(
+                    inputs.accountNumber,
+                    inputs.amount,
+                    inputs.pin
+                ).send({ from: accounts[0] });
+                showSuccess(`Withdrawn ${inputs.amount} ETH successfully!`);
+            } catch (error) {
+                showError(error.message);
+            }
+        };
+
+        document.getElementById('checkBalanceForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const inputs = {
+                accountNumber: document.getElementById('checkBalanceAccountNumber').value,
+                pin: document.getElementById('checkBalancePin').value
+            };
+
+            try {
+                const balance = await contract.methods.checkBalance(
+                    inputs.accountNumber,
+                    inputs.pin
+                ).call();
+                showBalance(balance);
+            } catch (error) {
+                showError(error.message);
+            }
+        };
+
+        // Initialize the DApp
+        init();
+    </script>
+</body>
+</html>
